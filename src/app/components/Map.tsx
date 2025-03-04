@@ -365,20 +365,19 @@ export default function MapComponent() {
                     {leg.duration} • {leg.distance}
                   </span>
                 </div>
-                <div className="flex items-center">
-                  <span className="text-gray-600 mr-2">From:</span>
-                  <span className="font-medium">{leg.from}</span>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className="h-4 w-4 mx-2 text-gray-500" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                  </svg>
-                  <span className="text-gray-600 mr-2">To:</span>
-                  <span className="font-medium">{leg.to}</span>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <span className="text-gray-600 mr-2">From:</span>
+                    <span className="font-medium">
+                      {routeLocations[index].name}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-gray-600 mr-2">To:</span>
+                    <span className="font-medium">
+                      {routeLocations[index + 1].name}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
