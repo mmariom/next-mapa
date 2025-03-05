@@ -47,6 +47,8 @@ export default function MapComponent() {
   const [mapLoading, setMapLoading] = useState(true);
   const [mapError, setMapError] = useState("");
 
+  const [minTurnover, setMinTurnover] = useState<number>(5000000); // Default to 5 million
+
   const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
 
   useEffect(() => {
@@ -165,18 +167,25 @@ export default function MapComponent() {
     }
   }, [map, filteredLocations, routePlanning, routeLocations]);
 
-  function handleFilterChange(country: string, city: string) {
+
+
+  function handleFilterChange(country: string, city: string, newMinTurnover: number) {
     setSelectedCountry(country);
     setSelectedCity(city);
+    setMinTurnover(newMinTurnover || 0);
 
-    const filtered = locations.filter(
-      (loc) =>
-        (!country || loc.country === country) &&
-        (!city || loc.city === city)
-    );
+    const filtered = locations.filter((loc) => {
+        const turnover = parseInt(loc.annual_turnover.replace(/\D/g, ""), 10);
+        return (
+            (!country || loc.country === country) &&
+            (!city || loc.city === city) &&
+            turnover >= (newMinTurnover || 0)
+        );
+    });
+
     setFilteredLocations(filtered);
     clearRoute();
-  }
+}
 
   function toggleRoutePlanning() {
     setRoutePlanning((prev) => {
@@ -215,6 +224,8 @@ export default function MapComponent() {
           let totalDistance = 0;
           let totalDuration = 0;
 
+    
+
           const legData = legs.map((leg) => {
             totalDistance += leg.distance?.value || 0;
             totalDuration += leg.duration?.value || 0;
@@ -225,9 +236,13 @@ export default function MapComponent() {
             };
           });
 
+          const totalSeconds = legs.reduce((acc, leg) => acc + (leg.duration?.value || 0), 0);
+          const hours = Math.floor(totalSeconds / 3600);
+          const minutes = Math.round((totalSeconds % 3600) / 60);
+
           setRouteInfo({
             totalDistance: `${(totalDistance / 1000).toFixed(1)} km`,
-            totalDuration: `${Math.round(totalDuration / 3600)}h ${Math.round((totalDuration % 3600)/60)}m`,
+            totalDuration: `${hours}h ${minutes.toString().padStart(2, '0')}m`,
             legs: legData,
           });
         }
@@ -244,12 +259,16 @@ export default function MapComponent() {
 
   return (
     <div className="space-y-4 p-4 max-w-7xl mx-auto">
-      <Filter
-        locations={locations}
-        selectedCountry={selectedCountry}
-        selectedCity={selectedCity}
-        onChange={handleFilterChange}
-      />
+   <Filter
+    locations={locations}
+    selectedCountry={selectedCountry}
+    selectedCity={selectedCity}
+    minTurnover={minTurnover}
+    onChange={(country, city, minT, maxT) => {
+        setMinTurnover(minT);
+        handleFilterChange(country, city, minT, maxT);
+    }}
+/>
   
       <div className="flex flex-wrap gap-2">
         <button
